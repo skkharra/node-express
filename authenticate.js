@@ -36,6 +36,26 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts, (jwt_payload, done) => 
     });
 }));
 
+exports.verifyUser = function (req, res, next) {
+    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    if (token) {
+        jwt.verify(token, config.secretKey, function (err, decoded) {
+            if (err) {
+                var err = new Error('You are not authenticated user!');
+                err.status = 401;
+                return next(err);
+            } else {
+                req.decoded = decoded;
+                next();
+            }
+        });
+    } else {
+        var err = new Error('No token provided by user!');
+        err.status = 403;
+        return next(err);
+    }
+};
+
 exports.verifyAdmin = function(req, res, next){
     if(req.user.admin){
         next()
@@ -46,4 +66,4 @@ exports.verifyAdmin = function(req, res, next){
     }
 }
 
-exports.verifyUser = passport.authenticate('jwt', {session: false});
+// exports.verifyUser = passport.authenticate('jwt', {session: false});
